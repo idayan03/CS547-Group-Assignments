@@ -1,0 +1,25 @@
+n_way: 10
+k_shot: 5
+
+use_gpu: true
+
+data:
+  train_path: "data/omniglot/images_background"
+  test_path: "data/omniglot/images_evaluation"
+
+  augment_rotate: false
+
+model:
+  _target_:  models.proto_network.ProtoNet
+  input_dim: [28, 28, 3]
+  hidden_dim: 64
+  output_dim: 64
+
+trainer:
+  train_episodes: 100
+  eval_episodes: 100
+  eval_every: 10
+
+  optimizer:
+    _target_: torch.optim.Adam
+    lr: 1e-3
