@@ -43,9 +43,15 @@ class RelationNetwork(torch.nn.Module):
 
         pair_scores = self.pair_lin_layers(pair_embeds)
 
-        pair_gold = q_y.repeat_interleave(s_x.shape[0]) == s_y.repeat(q_x.shape[0])
+        pair_gold = (q_y.repeat_interleave(s_x.shape[0]) == s_y.repeat(q_x.shape[0])).float().reshape(-1)
 
-        loss = self.mse_loss(pair_scores, pair_gold.float())
+        pos_pairs = (pair_gold == 1.)
+        neg_pairs = (pair_gold == 0.)
+
+        loss_pos = self.mse_loss(pair_scores[pos_pairs], pair_gold[pos_pairs])
+        loss_neg = self.mse_loss(pair_scores[neg_pairs], pair_gold[neg_pairs])
+
+        loss = loss_pos + loss_neg
 
         #find best support sample for each query
         best_support = pair_scores.reshape(q_x.shape[0], s_x.shape[0]).argmax(-1)
