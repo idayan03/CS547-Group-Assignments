@@ -1,4 +1,4 @@
-n_way: 10
+n_way: 5
 k_shot: 5
 
 use_gpu: true
