@@ -90,8 +90,9 @@ class MetaLearning:
 
                 print("Eval accuracy after", train_ep_id, "training episodes:", total_eval_acc)
 
-                if trainer_cfg.lr_decay:
-                    optimizer.param_groups[0]['lr'] *= 0.5
+            if trainer_cfg.lr_decay and train_ep_id % trainer_cfg.lr_decay_every == 0:
+                optimizer.param_groups[0]['lr'] *= trainer_cfg.lr_decay_rate
+                print(optimizer.param_groups[0]['lr'])
 
         return
 
