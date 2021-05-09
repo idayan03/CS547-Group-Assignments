@@ -18,6 +18,10 @@ trainer:
   train_episodes: 100
   eval_episodes: 100
   eval_every: 10
+  
+  lr_decay: false
+  lr_decay_rate: 0.5
+  lr_decay_every: 2000 
 
   optimizer:
     _target_: torch.optim.Adam

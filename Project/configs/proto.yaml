@@ -20,9 +20,13 @@ model:
   pooling_size: 2
 
 trainer:
-  train_episodes: 200
-  eval_episodes: 200
-  eval_every: 20
+  train_episodes: 10000
+  eval_episodes: 1000
+  eval_every: 2000
+  
+  lr_decay: true
+  lr_decay_rate: 0.5
+  lr_decay_every: 2000 
 
   optimizer:
     _target_: torch.optim.Adam
