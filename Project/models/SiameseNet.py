@@ -38,7 +38,7 @@ class SiameseNetwork(nn.Module):
         output = F.sigmoid(self.fc1(output))
         return output
 
-    def forward(self, queryImage, queryLabel, supportImage, supportLabel):
+    def forward(self, supportImage, supportLabel, queryImage, queryLabel):
         #query is the image the the one fixed
         output1 = self.forward_once(queryImage.permute(0, 3, 1, 2))
         output2 = self.forward_once(supportImage.permute(0, 3, 1, 2))
@@ -54,7 +54,7 @@ class SiameseNetwork(nn.Module):
         # best_support = out.reshape(queryImage.shape[0], supportImage.shape[0]).argmax(-1)
         best_support = out.argmax(-1)
         # predict class
-        pred_y = supportImage[best_support]
+        pred_y = supportLabel[best_support]
 
         return loss, pred_y
 
