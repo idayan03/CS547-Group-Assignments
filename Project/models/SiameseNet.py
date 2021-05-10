@@ -1,21 +1,26 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
 class SiameseNetwork(nn.Module):
-    def __init__(self):
+    def __init__(self, input_dim):
         super(SiameseNetwork, self).__init__()
         # Setting up the Sequential of CNN Layers
         self.cnn1 = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=10, stride=1),
+            nn.Conv2d(input_dim[-1], 64, kernel_size=10, stride=1, padding=2),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, stride=1),
+
+            nn.Conv2d(64, 128, kernel_size=7, stride=1, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, stride=2),
 
-            nn.Conv2d(64, 128, kernel_size=7, stride=1, padding=2),
+            nn.Conv2d(128, 128, kernel_size=4, stride=1, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, stride=2),
 
-            nn.Conv2d(128, 128, kernel_size=4, stride=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, stride=2),
-
-            nn.Conv2d(128, 256, kernel_size=4, stride=1),
+            nn.Conv2d(128, 256, kernel_size=4, stride=1, padding=1),
             nn.ReLU(inplace=True),
 
         )
@@ -23,9 +28,9 @@ class SiameseNetwork(nn.Module):
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal(m.weight, mode='fan_in')
 
-        self.fc1 = nn.Linear(9216, 4096)
+        self.fc1 = nn.Linear(2304, 1200)
 
-        self.fc2 = nn.Linear(4096, 1)
+        self.fc2 = nn.Linear(1200, 1)
 
     def forward_once(self, x):
         output = self.cnn1(x)
@@ -33,13 +38,25 @@ class SiameseNetwork(nn.Module):
         output = F.sigmoid(self.fc1(output))
         return output
 
-    def forward(self, input1, input2):
-        output1 = self.forward_once(input1)
-        output2 = self.forward_once(input2)
+    def forward(self, queryImage, queryLabel, supportImage, supportLabel):
+        #query is the image the the one fixed
+        output1 = self.forward_once(queryImage.permute(0, 3, 1, 2))
+        output2 = self.forward_once(supportImage.permute(0, 3, 1, 2))
         diff = torch.abs(output1 - output2)
-        out = self.fc2(diff)
+        out = F.sigmoid(self.fc2(diff))
+        label= (queryLabel == supportLabel).float().reshape(-1)
+        # print(label.shape)
+        # print(output1.shape)
+        # print(output2.shape)
+        loss = ContrastiveLoss()(output1, output2, label)
 
-        return output1, output2
+        # find best support sample for each query
+        # best_support = out.reshape(queryImage.shape[0], supportImage.shape[0]).argmax(-1)
+        best_support = out.argmax(-1)
+        # predict class
+        pred_y = supportImage[best_support]
+
+        return loss, pred_y
 
 class ContrastiveLoss(torch.nn.Module):
     """
@@ -53,8 +70,8 @@ class ContrastiveLoss(torch.nn.Module):
 
     def forward(self, output1, output2, label):
         euclidean_distance = F.pairwise_distance(output1, output2)
-        loss_contrastive = torch.mean((1-label) * torch.pow(euclidean_distance, 2) +
-                                      (label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
+        loss_contrastive = torch.mean(label * torch.pow(euclidean_distance, 2) +
+                                      (1-label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
 
 
         return loss_contrastive
