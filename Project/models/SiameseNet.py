@@ -40,15 +40,23 @@ class SiameseNetwork(nn.Module):
 
     def forward(self, supportImage, supportLabel, queryImage, queryLabel):
         #query is the image the the one fixed
-        output1 = self.forward_once(queryImage.permute(0, 3, 1, 2))
-        output2 = self.forward_once(supportImage.permute(0, 3, 1, 2))
-        diff = torch.abs(output1 - output2)
+        query= self.forward_once(queryImage.permute(0, 3, 1, 2))
+
+        support= self.forward_once(supportImage.permute(0, 3, 1, 2))
+
+        support_repeat = support.repeat(queryImage.shape[0], 1)
+        # 0, 1, 2, 0, 1, 2 ...
+        query_rep = query.repeat_interleave(support.shape[0], dim=0)
+
+        diff = torch.abs(query_rep - support_repeat)
         out = F.sigmoid(self.fc2(diff))
-        label= (queryLabel == supportLabel).float().reshape(-1)
+
+        label= (queryLabel.repeat_interleave(supportImage.shape[0]) == supportLabel.repeat(queryImage.shape[0])).float().reshape(-1)
         # print(label.shape)
-        # print(output1.shape)
-        # print(output2.shape)
-        loss = ContrastiveLoss()(output1, output2, label)
+        # print(query.shape)
+        # print(support.shape)
+        #print(queryLabel, supportLabel)
+        loss = ContrastiveLoss()(query_rep, support_repeat, label)
 
         # find best support sample for each query
         # best_support = out.reshape(queryImage.shape[0], supportImage.shape[0]).argmax(-1)
@@ -68,8 +76,8 @@ class ContrastiveLoss(torch.nn.Module):
         super(ContrastiveLoss, self).__init__()
         self.margin = margin
 
-    def forward(self, output1, output2, label):
-        euclidean_distance = F.pairwise_distance(output1, output2)
+    def forward(self, query, support, label):
+        euclidean_distance = F.pairwise_distance(query, support)
         loss_contrastive = torch.mean(label * torch.pow(euclidean_distance, 2) +
                                       (1-label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
 
