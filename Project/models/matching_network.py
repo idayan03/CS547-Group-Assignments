@@ -40,7 +40,7 @@ class MatchingNetwork(nn.Module):
         cos_sims = self.cos(q_embeds_rep, s_embeds_rep)
 
         # attention
-        scores = self.softmax(cos_sims.reshape(q_x.shape[0], s_x.shape[0]))
+        scores = cos_sims.reshape(q_x.shape[0], s_x.shape[0])
 
         loss = self.cross_loss(scores, q_y)
 
