@@ -4,36 +4,27 @@ import torch.nn.functional as F
 
 
 class SiameseNetwork(nn.Module):
-    def __init__(self, input_dim):
+    def __init__(self, input_dim, conv_channels, embed_dim,
+                 kernel_size=5, num_conv_layers=2, num_pair_layers=2,
+                 wh_after_conv=4):
         super(SiameseNetwork, self).__init__()
-        # Setting up the Sequential of CNN Layers
-        self.cnn1 = nn.Sequential(
-            nn.Conv2d(input_dim[-1], 64, kernel_size=10, stride=1, padding=2),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, stride=1),
 
-            nn.Conv2d(64, 128, kernel_size=7, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, stride=2),
+        self.conv_layers = []
+        for i in range(num_conv_layers):
+            conv_layer = nn.Sequential(nn.Conv2d(input_dim[-1] if i == 0 else conv_channels,
+                                                 conv_channels, kernel_size, padding=kernel_size // 2),
+                                       nn.BatchNorm2d(conv_channels),
+                                       nn.ReLU(),
+                                       nn.MaxPool2d(2))
+            self.conv_layers.append(conv_layer)
+        self.conv_layers = nn.Sequential(*self.conv_layers)
 
-            nn.Conv2d(128, 128, kernel_size=4, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, stride=2),
+        self.fc1 = nn.Linear(conv_channels * wh_after_conv * wh_after_conv, embed_dim)
 
-            nn.Conv2d(128, 256, kernel_size=4, stride=1, padding=1),
-            nn.ReLU(inplace=True),
-
-        )
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal(m.weight, mode='fan_in')
-
-        self.fc1 = nn.Linear(2304, 1200)
-
-        self.fc2 = nn.Linear(1200, 1)
+        self.fc2 = nn.Linear(embed_dim, 1)
 
     def forward_once(self, x):
-        output = self.cnn1(x)
+        output = self.conv_layers(x)
         output = output.reshape(output.shape[0], -1)
         output = F.sigmoid(self.fc1(output))
         return output

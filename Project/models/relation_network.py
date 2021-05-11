@@ -6,7 +6,6 @@ class RelationNetwork(torch.nn.Module):
     def __init__(self, input_dim, conv_channels, embed_dim,
                  kernel_size=5, num_conv_layers=2, num_pair_layers=2,
                  wh_after_conv=4):
-
         super().__init__()
 
         self.mse_loss = nn.MSELoss()
@@ -34,10 +33,10 @@ class RelationNetwork(torch.nn.Module):
         q_embeds = self.embed_lin(q_embeds.reshape(s_embeds.shape[0], -1))
 
         s_embeds_rep = s_embeds.repeat(q_x.shape[0], 1)
-        #0, 1, 2, 0, 1, 2 ...
+        # 0, 1, 2, 0, 1, 2 ...
 
         q_embeds_rep = q_embeds.repeat_interleave(s_x.shape[0], dim=0)
-        #0, 0, 0, 1, 1, 1, ...
+        # 0, 0, 0, 1, 1, 1, ...
 
         pair_embeds = torch.cat((q_embeds_rep, s_embeds_rep), dim=-1)
 
@@ -47,10 +46,10 @@ class RelationNetwork(torch.nn.Module):
 
         loss = self.mse_loss(pair_scores, pair_gold)
 
-        #find best support sample for each query
+        # find best support sample for each query
         best_support = pair_scores.reshape(q_x.shape[0], s_x.shape[0]).argmax(-1)
 
-        #predict class
+        # predict class
         pred_y = s_y[best_support]
 
         return loss, pred_y

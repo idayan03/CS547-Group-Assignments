@@ -12,12 +12,12 @@ data:
 model:
   _target_: models.siamese_network.SiameseNetwork
   input_dim: [28, 28, 3]
-#  conv_channels: 64
-#  embed_dim: 128
-#  kernel_size: 3
-#  num_conv_layers: 3
-#  num_pair_layers: 2
-#  wh_after_conv: 3
+  conv_channels: 64
+  embed_dim: 128
+  kernel_size: 3
+  num_conv_layers: 3
+  num_pair_layers: 2
+  wh_after_conv: 3
 
 trainer:
   train_episodes: 1000000
