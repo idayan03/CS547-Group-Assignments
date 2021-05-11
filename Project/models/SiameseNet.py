@@ -59,8 +59,8 @@ class SiameseNetwork(nn.Module):
         loss = ContrastiveLoss()(query_rep, support_repeat, label)
 
         # find best support sample for each query
-        # best_support = out.reshape(queryImage.shape[0], supportImage.shape[0]).argmax(-1)
-        best_support = out.argmax(-1)
+        best_support = out.reshape(queryImage.shape[0], supportImage.shape[0]).argmax(-1)
+        # best_support = out.argmax(-1)
         # predict class
         pred_y = supportLabel[best_support]
 
