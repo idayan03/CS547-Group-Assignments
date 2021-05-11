@@ -40,7 +40,7 @@ class SiameseNetwork(nn.Module):
         query_rep = query.repeat_interleave(support.shape[0], dim=0)
 
         diff = torch.abs(query_rep - support_repeat)
-        out = F.sigmoid(self.fc2(diff))
+        out = F.sigmoid(self.fc2(diff)).reshape(-1)
 
         label= (queryLabel.repeat_interleave(supportImage.shape[0]) == supportLabel.repeat(queryImage.shape[0])).float().reshape(-1)
         # print(label.shape)
