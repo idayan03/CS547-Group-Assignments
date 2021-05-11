@@ -26,10 +26,10 @@ class MatchingNetwork(nn.Module):
 
     def forward(self, s_x, s_y, q_x, q_y):
         s_embeds = self.conv_layers(s_x.permute(0, 3, 1, 2))
-        s_embeds = self.embed_lin(s_embeds.view(s_embeds.size(0), -1))
+        s_embeds = self.embed_lin(s_embeds.reshape(s_embeds.size(0), -1))
 
         q_embeds = self.conv_layers(q_x.permute(0, 3, 1, 2))
-        q_embeds = self.embed_lin(q_embeds.view(q_embeds.size(0), -1))
+        q_embeds = self.embed_lin(q_embeds.reshape(q_embeds.size(0), -1))
 
         s_embeds_rep = s_embeds.repeat(q_x.shape[0], 1)
         # 0, 1, 2, 0, 1, 2 ...
