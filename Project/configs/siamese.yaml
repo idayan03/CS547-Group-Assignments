@@ -20,11 +20,13 @@ model:
   wh_after_conv: 3
 
 trainer:
-  train_episodes: 1000000
+  train_episodes: 100000
   eval_episodes: 1000
-  eval_every: 2000
+  eval_every: 10000
 
-  lr_decay: false
+  lr_decay: true
+  lr_decay_rate: 0.5
+  lr_decay_every: 20000
 
   optimizer:
     _target_: torch.optim.Adam

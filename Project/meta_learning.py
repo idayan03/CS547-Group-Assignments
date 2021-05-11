@@ -63,7 +63,7 @@ class MetaLearning:
 
             loss, _ = self.run_episode(train_s_x, train_s_y, train_q_x, train_q_y)
 
-            if train_ep_id % 100 == 0:
+            if train_ep_id % 500 == 0:
                 print(train_ep_id, "loss:", loss)
 
             optimizer.zero_grad()
