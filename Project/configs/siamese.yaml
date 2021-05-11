@@ -1,7 +1,7 @@
 n_way: 5
 k_shot: 5
 
-use_gpu: false
+use_gpu: true
 
 data:
   train_path: "data/omniglot/images_background"
@@ -10,7 +10,7 @@ data:
   augment_rotate: false
 
 model:
-  _target_: models.SiameseNet.SiameseNetwork
+  _target_: models.siamese_network.SiameseNetwork
   input_dim: [28, 28, 3]
 #  conv_channels: 64
 #  embed_dim: 128
@@ -22,7 +22,9 @@ model:
 trainer:
   train_episodes: 1000000
   eval_episodes: 1000
-  eval_every: 10000
+  eval_every: 2000
+
+  lr_decay: false
 
   optimizer:
     _target_: torch.optim.Adam
