@@ -47,7 +47,7 @@ class SiameseNetwork(nn.Module):
         # print(query.shape)
         # print(support.shape)
         #print(queryLabel, supportLabel)
-        loss = ContrastiveLoss()(query_rep, support_repeat, label)
+        loss = F.binary_cross_entropy_with_logits(out, label)
 
         # find best support sample for each query
         best_support = out.reshape(queryImage.shape[0], supportImage.shape[0]).argmax(-1)
@@ -56,20 +56,3 @@ class SiameseNetwork(nn.Module):
 
         return loss, pred_y
 
-class ContrastiveLoss(torch.nn.Module):
-    """
-    Contrastive loss function.
-    Based on: http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
-    """
-
-    def __init__(self, margin=2.0):
-        super(ContrastiveLoss, self).__init__()
-        self.margin = margin
-
-    def forward(self, query, support, label):
-        euclidean_distance = F.pairwise_distance(query, support)
-        loss_contrastive = torch.mean(label * torch.pow(euclidean_distance, 2) +
-                                      (1-label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
-
-
-        return loss_contrastive
