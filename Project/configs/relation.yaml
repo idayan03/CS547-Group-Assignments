@@ -10,7 +10,7 @@ data:
   augment_rotate: false
 
 model:
-  _target_:  models.relation_network.RelationNetwork
+  _target_: models.relation_network.RelationNetwork
   input_dim: [28, 28, 3]
   conv_channels: 64
   embed_dim: 128
@@ -24,7 +24,7 @@ trainer:
   eval_episodes: 1000
   eval_every: 10000
 
-  lr_decay: true
+  lr_decay: false
   lr_decay_rate: 0.5
   lr_decay_every: 10000
 
