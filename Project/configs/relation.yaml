@@ -26,8 +26,8 @@ trainer:
 
   lr_decay: true
   lr_decay_rate: 0.5
-  lr_decay_every: 20000
+  lr_decay_every: 10000
 
   optimizer:
     _target_: torch.optim.Adam
-    lr: 1e-4
+    lr: 1e-3
