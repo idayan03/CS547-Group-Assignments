@@ -44,6 +44,7 @@ class ProtoNet(torch.nn.Module):
         probabilities = F.log_softmax(-distances, dim=1).view(self.n_way, self.k_shot, -1)
         
         class_indices = torch.arange(0, self.n_way).view(self.n_way, 1, 1).expand(self.n_way, self.k_shot, 1).long()
+        class_indices = class_indices.to(x.device)
         loss = -probabilities.gather(2, class_indices).squeeze().view(-1).mean()
         _, y_preds = probabilities.max(2)
         return loss, y_preds.view(-1)
