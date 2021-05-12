@@ -1,7 +1,7 @@
 n_way: 5
 k_shot: 5
 
-use_gpu: false
+use_gpu: true
 
 data:
   train_path: "data/omniglot/images_background"
