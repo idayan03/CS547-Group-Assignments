@@ -13,17 +13,21 @@ model:
   _target_: models.matching_network.MatchingNet
   input_dim: [28, 28, 3]
   conv_channels: 64
-  num_conv_layers: 4
+  embed_dim: 128
+  kernel_size: 3
+  num_conv_layers: 3
+  num_pair_layers: 2
+  wh_after_conv: 3
 
 trainer:
   train_episodes: 100000
   eval_episodes: 1000
-  eval_every: 100
+  eval_every: 10000
 
   lr_decay: false
   lr_decay_rate: 0.5
-  lr_decay_every: 500
+  lr_decay_every: 10000
 
   optimizer:
     _target_: torch.optim.Adam
-    lr: 1e-3
+    lr: 1e-4
