@@ -10,30 +10,28 @@ from meta_learning import MetaLearning
 from omegaconf import DictConfig, OmegaConf
 
 class ProtoNet(torch.nn.Module):
-    def __init__(self, n_way, k_shot, input_dim, conv_channels, num_convolutional_blocks, convolution_size, pooling_size):
+    def __init__(self, n_way, k_shot, input_dim, conv_channels, embed_dim,
+                 kernel_size=5, num_conv_layers=2, num_pair_layers=2,
+                 wh_after_conv=4):
         super().__init__()
         self.n_way = n_way
         self.k_shot = k_shot
         self.input_dim = input_dim
-        self.conv_channels = conv_channels
-        self.num_convolutional_blocks = num_convolutional_blocks
-        self.conolution_size = convolution_size
-        self.pooling_size = pooling_size
-        self.convolutional_blocks = []
-        for i in range(num_convolutional_blocks):
-            conv_layer = nn.Sequential(nn.Conv2d(input_dim[-1] if i == 0 else conv_channels, 
-                                                 conv_channels, kernel_size=convolution_size, padding=1),
-                                                 nn.BatchNorm2d(conv_channels),
-                                                 nn.ReLU(),
-                                                 nn.MaxPool2d(kernel_size=pooling_size))
-            self.convolutional_blocks.append(conv_layer)
-        self.convolutional_blocks = nn.Sequential(*self.convolutional_blocks)
+        self.conv_layers = []
+        for i in range(num_conv_layers):
+            conv_layer = nn.Sequential(nn.Conv2d(input_dim[-1] if i == 0 else conv_channels,
+                                                 conv_channels, kernel_size, padding=kernel_size // 2),
+                                       nn.BatchNorm2d(conv_channels),
+                                       nn.ReLU(),
+                                       nn.MaxPool2d(2))
+            self.conv_layers.append(conv_layer)
+        self.conv_layers = nn.Sequential(*self.conv_layers)
 
     def forward(self, s_x, s_y, q_x, q_y):
         x = torch.cat((s_x, q_x), dim=0)
         # Reshape from (28, 28, 3) --> (3, 28, 28)
         x = torch.reshape(x, (x.shape[0], x.shape[3], x.shape[1], x.shape[2]))
-        x = self.convolutional_blocks(x)
+        x = self.conv_layers(x)
         x = x.view(x.shape[0], -1)
         z_dim = x.size(-1)
 
